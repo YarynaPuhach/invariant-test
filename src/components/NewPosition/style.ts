@@ -41,6 +41,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     flexDirection: 'row',
 
     '& .noConnectedLayer': {
+      display: 'none', // added to enable editing without connecting wallet
       height: '100%'
     },
 

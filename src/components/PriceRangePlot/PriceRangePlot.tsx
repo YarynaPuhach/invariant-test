@@ -12,6 +12,7 @@ import { nearestTickIndex } from '@consts/utils'
 import { PlotTickData } from '@reducers/positions'
 import loader from '@static/gif/loader.gif'
 import useStyles from './style'
+import HeatmapLayer from './HeatmapLayer/HeatmapLayer'
 
 export type TickPlotPositionData = Omit<PlotTickData, 'y'>
 
@@ -42,6 +43,8 @@ export interface IPriceRangePlot {
     min: number
     max: number
   }
+  heatmapEnabled?: boolean
+  volumeData?: Array<{ range: number[]; volume: number }>
 }
 
 export const PriceRangePlot: React.FC<IPriceRangePlot> = ({
@@ -67,7 +70,9 @@ export const PriceRangePlot: React.FC<IPriceRangePlot> = ({
   coverOnLoading = false,
   hasError = false,
   reloadHandler,
-  volumeRange
+  volumeRange,
+  heatmapEnabled,
+  volumeData
 }) => {
   const classes = useStyles()
 
@@ -418,6 +423,22 @@ export const PriceRangePlot: React.FC<IPriceRangePlot> = ({
     plotMax,
     disabled
   )
+  const heatmapLayer: Layer = ({ innerWidth, innerHeight }) => {
+    if (loading || !heatmapEnabled || !volumeData || volumeData.length === 0) {
+      return null;
+    }
+    return (
+      <HeatmapLayer
+        innerWidth={innerWidth}
+        innerHeight={innerHeight}
+        volumeData={volumeData as Array<{ range: [number, number]; volume: number }>} // Pass the volumeData prop
+        heatmapEnabled={heatmapEnabled} // Pass the heatmapEnabled prop
+        plotMin={plotMin}
+        plotMax={plotMax}
+      />
+    )
+  }
+
 
   return (
     <Grid
@@ -498,6 +519,7 @@ export const PriceRangePlot: React.FC<IPriceRangePlot> = ({
         animate={false}
         role='application'
         layers={[
+          heatmapLayer,
           bottomLineLayer,
           'grid',
           'markers',
@@ -508,6 +530,7 @@ export const PriceRangePlot: React.FC<IPriceRangePlot> = ({
           currentLayer,
           volumeRangeLayer,
           brushLayer,
+
           'axes',
           'legends'
         ]}

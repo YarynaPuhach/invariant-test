@@ -19,9 +19,10 @@ import { useHistory } from 'react-router-dom'
 
 export const WrappedPositionsList: React.FC = () => {
   const list = useSelector(positionsWithPoolsData)
-  const isLoading = useSelector(isLoadingPositionsList)
+  const isLoading = false
+  // const isLoading = useSelector(isLoadingPositionsList) // commented to enable editing without connecting wallet
   const lastPage = useSelector(lastPageSelector)
-  const walletStatus = useSelector(status)
+  // const walletStatus = useSelector(status) // commented to enable editing without connecting wallet
   const history = useHistory()
   const dispatch = useDispatch()
 
@@ -138,7 +139,7 @@ export const WrappedPositionsList: React.FC = () => {
           )
         })}
       loading={isLoading}
-      showNoConnected={walletStatus !== Status.Initialized}
+      showNoConnected={false}
       itemsPerPage={POSITIONS_PER_PAGE}
       noConnectedBlockerProps={{
         onConnect: openWalletSelectorModal,

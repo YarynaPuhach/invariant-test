@@ -1,4 +1,4 @@
-import { Button, Grid, Tooltip, Typography } from '@material-ui/core'
+import { Button, FormControlLabel, Grid, Switch, Tooltip, Typography } from '@material-ui/core'
 import React, { useState, useEffect, useRef } from 'react'
 import PriceRangePlot, { TickPlotPositionData } from '@components/PriceRangePlot/PriceRangePlot'
 import RangeInput from '@components/Inputs/RangeInput/RangeInput'
@@ -17,6 +17,8 @@ import loader from '@static/gif/loader.gif'
 import useStyles from './style'
 import activeLiquidity from '@static/svg/activeLiquidity.svg'
 import { PositionOpeningMethod } from '@consts/static'
+import { InfoOutlined } from '@material-ui/icons'
+import { colors, typography } from '@static/theme'
 
 export interface IRangeSelector {
   data: PlotTickData[]
@@ -101,6 +103,19 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
 
   const [isPlotDiscrete, setIsPlotDiscrete] = useState(initialIsDiscreteValue)
 
+  const [isHeatmapEnabled, setIsHeatmapEnabled] = useState(false);
+
+  const toggleHeatmap = () => {
+    setIsHeatmapEnabled((prev) => !prev);
+  };
+  const fakeVolumeData = [
+    { range: [-5, -1], volume: 40000 },
+    { range: [-1, 1], volume: 60000 },
+    { range: [1, 2], volume: 15000 },
+    { range: [2, 4], volume: 10000 },
+    { range: [5, 10], volume: 15000 }
+  ];
+
   const isMountedRef = useRef(false)
 
   useEffect(() => {
@@ -184,12 +199,12 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
     if (positionOpeningMethod === 'range') {
       const initSideDist = Math.abs(
         midPrice.x -
-          calcPrice(
-            Math.max(getMinTick(tickSpacing), midPrice.index - tickSpacing * 15),
-            isXtoY,
-            xDecimal,
-            yDecimal
-          )
+        calcPrice(
+          Math.max(getMinTick(tickSpacing), midPrice.index - tickSpacing * 15),
+          isXtoY,
+          xDecimal,
+          yDecimal
+        )
       )
 
       changeRangeHandler(
@@ -225,12 +240,12 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
     } else {
       const initSideDist = Math.abs(
         midPrice.x -
-          calcPrice(
-            Math.max(getMinTick(tickSpacing), midPrice.index - tickSpacing * 15),
-            isXtoY,
-            xDecimal,
-            yDecimal
-          )
+        calcPrice(
+          Math.max(getMinTick(tickSpacing), midPrice.index - tickSpacing * 15),
+          isXtoY,
+          xDecimal,
+          yDecimal
+        )
       )
 
       setPlotMin(midPrice.x - initSideDist)
@@ -257,25 +272,25 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
     if (leftX < plotMin || rightX > plotMax || canZoomCloser) {
       const leftDist = Math.abs(
         leftX -
-          calcPrice(
-            isXtoY
-              ? Math.max(getMinTick(tickSpacing), left - tickSpacing * 15)
-              : Math.min(getMaxTick(tickSpacing), left + tickSpacing * 15),
-            isXtoY,
-            xDecimal,
-            yDecimal
-          )
+        calcPrice(
+          isXtoY
+            ? Math.max(getMinTick(tickSpacing), left - tickSpacing * 15)
+            : Math.min(getMaxTick(tickSpacing), left + tickSpacing * 15),
+          isXtoY,
+          xDecimal,
+          yDecimal
+        )
       )
       const rightDist = Math.abs(
         rightX -
-          calcPrice(
-            isXtoY
-              ? Math.min(getMaxTick(tickSpacing), right + tickSpacing * 15)
-              : Math.max(getMinTick(tickSpacing), right - tickSpacing * 15),
-            isXtoY,
-            xDecimal,
-            yDecimal
-          )
+        calcPrice(
+          isXtoY
+            ? Math.min(getMaxTick(tickSpacing), right + tickSpacing * 15)
+            : Math.max(getMinTick(tickSpacing), right - tickSpacing * 15),
+          isXtoY,
+          xDecimal,
+          yDecimal
+        )
       )
 
       let dist
@@ -335,6 +350,30 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
     <Grid container className={classes.wrapper} direction='column'>
       <Grid className={classes.headerContainer} container justifyContent='space-between'>
         <Typography className={classes.header}>Price range</Typography>
+        <FormControlLabel
+          control={<Switch checked={isHeatmapEnabled} onChange={toggleHeatmap} />}
+          label={
+            <Tooltip
+              title="Toggle the volume heatmap on/off"
+              arrow
+              classes={{
+                tooltip: classes.liquidityTooltip
+              }}
+            >
+              <Typography
+                style={{
+                  color: colors.invariant.textGrey,
+                  display: 'flex',
+                  gap: 4,
+                  alignItems: 'center',
+                  ...typography.body2,
+                }}
+              >
+                Volume Heatmap
+                <InfoOutlined style={{ ...typography.caption2 }} />
+              </Typography>
+            </Tooltip>}
+        />
         <PlotTypeSwitch
           onSwitch={val => {
             setIsPlotDiscrete(val)
@@ -415,6 +454,8 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
           hasError={hasTicksError}
           reloadHandler={reloadHandler}
           volumeRange={volumeRange}
+          heatmapEnabled={isHeatmapEnabled}
+          volumeData={fakeVolumeData}
         />
         <Typography className={classes.subheader}>Set price range</Typography>
         <Grid container className={classes.inputs}>
@@ -444,13 +485,13 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
             onBlur={() => {
               const newLeft = isXtoY
                 ? Math.min(
-                    rightRange - tickSpacing,
-                    nearestTickIndex(+leftInput, tickSpacing, isXtoY, xDecimal, yDecimal)
-                  )
+                  rightRange - tickSpacing,
+                  nearestTickIndex(+leftInput, tickSpacing, isXtoY, xDecimal, yDecimal)
+                )
                 : Math.max(
-                    rightRange + tickSpacing,
-                    nearestTickIndex(+leftInput, tickSpacing, isXtoY, xDecimal, yDecimal)
-                  )
+                  rightRange + tickSpacing,
+                  nearestTickIndex(+leftInput, tickSpacing, isXtoY, xDecimal, yDecimal)
+                )
 
               changeRangeHandler(newLeft, rightRange)
               autoZoomHandler(newLeft, rightRange)
@@ -483,13 +524,13 @@ export const RangeSelector: React.FC<IRangeSelector> = ({
             onBlur={() => {
               const newRight = isXtoY
                 ? Math.max(
-                    leftRange + tickSpacing,
-                    nearestTickIndex(+rightInput, tickSpacing, isXtoY, xDecimal, yDecimal)
-                  )
+                  leftRange + tickSpacing,
+                  nearestTickIndex(+rightInput, tickSpacing, isXtoY, xDecimal, yDecimal)
+                )
                 : Math.min(
-                    leftRange - tickSpacing,
-                    nearestTickIndex(+rightInput, tickSpacing, isXtoY, xDecimal, yDecimal)
-                  )
+                  leftRange - tickSpacing,
+                  nearestTickIndex(+rightInput, tickSpacing, isXtoY, xDecimal, yDecimal)
+                )
               changeRangeHandler(leftRange, newRight)
               autoZoomHandler(leftRange, newRight)
             }}
